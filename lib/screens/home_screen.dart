@@ -3,214 +3,6 @@ import 'package:badminton/services/providerSerivice.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-// class HomeScreen extends StatefulWidget {
-//   const HomeScreen({super.key});
-//
-//   @override
-//   _HomeScreenState createState() => _HomeScreenState();
-// }
-//
-// class _HomeScreenState extends State<HomeScreen> {
-//   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-//   String todayDate = DateFormat.yMMMd().format(DateTime.now());
-//   List<Map<String, dynamic>> slotsAvailability = [];
-//   bool isLoading = true;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     // fetchAvailableSlots();
-//     fetchSlots();
-//   }
-//
-//   Future<void> fetchSlots() async {
-//     List<Map<String, dynamic>> data = [];
-//     List<String> courts = ['Court1', 'Court2', 'Court3', 'Court4'];
-//     Map<String, Map<String, dynamic>> biggerMap = {
-//       'position1': {
-//         'time1': false,
-//         'time2': false,
-//         'time3': false,
-//         'time4': false,
-//       },
-//       'position2': {
-//         'time1': false,
-//         'time2': false,
-//         'time3': false,
-//         'time4': false,
-//       },
-//       'position3': {
-//         'time1': false,
-//         'time2': false,
-//         'time3': false,
-//         'time4': false,
-//       },
-//       'position4': {
-//         'time1': false,
-//         'time2': false,
-//         'time3': false,
-//         'time4': false,
-//       }
-//     };
-//
-//     for (String court in courts) {
-//       DocumentReference slotRef = _firestore.collection(court).doc(todayDate);
-//
-//       DocumentSnapshot slotDoc = await slotRef.get();
-//       if (slotDoc.exists) {
-//         Map<String, dynamic> map = slotDoc.data() as Map<String, dynamic>;
-//         Map<String, Map<String, dynamic>> updatedMap = {};
-//         // Copy biggerMap structure into updatedMap
-//         biggerMap.forEach((position, times) {
-//           updatedMap[position] = Map.from(times);
-//         });
-//
-//         map.forEach((position, times) {
-//           if (updatedMap.containsKey(position)) {
-//             times.forEach((time, value) {
-//               if (updatedMap[position]!.containsKey(time)) {
-//                 updatedMap[position]![time] = value; // Update value
-//               }
-//             });
-//           }
-//         });
-//         data.add(updatedMap);
-//       } else {
-//         data.add(biggerMap);
-//       }
-//     }
-//     print(data);
-//
-//     setState(() {
-//       slotsAvailability = data;
-//       isLoading = false;
-//     });
-//   }
-//
-//   void showBookingDialog(String courtName, String position, String timeSlot) {
-//     showDialog(
-//       context: context,
-//       builder: (context) {
-//         return AlertDialog(
-//           title: const Text("Confirm Booking"),
-//           content: const Text("Do you want to book this slot?"),
-//           actions: [
-//             TextButton(
-//               onPressed: () => Navigator.pop(context),
-//               child: const Text("Cancel"),
-//             ),
-//             TextButton(
-//               onPressed: () {
-//                 bookSlot(courtName, position, timeSlot);
-//                 Navigator.pop(context);
-//               },
-//               child: const Text("Confirm"),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-//   }
-//
-//   Future<void> bookSlot(
-//       String courtName, String position, String timeSlot) async {
-//     String userId = "guest";
-//     DocumentReference slotRef = _firestore.collection(courtName).doc(todayDate);
-//     await slotRef.set(
-//       {
-//         position: {timeSlot: userId},
-//       },
-//       SetOptions(merge: true),
-//     ).whenComplete(() {
-//       fetchSlots();
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(
-//           content: Text("Slot Booked"),
-//           duration: Duration(milliseconds: 300),
-//         ),
-//       );
-//     });
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text("Badminton Court Booking")),
-//       body: isLoading
-//           ? const Center(child: CircularProgressIndicator())
-//           : ListView.builder(
-//               itemCount: slotsAvailability.length,
-//               itemBuilder: (context, courtIndex) {
-//                 var court = slotsAvailability[courtIndex];
-//                 String courtName = "Court${courtIndex + 1}";
-//                 return Card(
-//                   margin: const EdgeInsets.all(8),
-//                   child: Column(
-//                     children: [
-//                       ListTile(
-//                         title: Text("Court ${courtIndex + 1}"),
-//                         tileColor: Colors.blueAccent,
-//                         textColor: Colors.white,
-//                       ),
-//                       Column(
-//                         children: court.keys.map<Widget>((position) {
-//                           return Padding(
-//                             padding: const EdgeInsets.all(8.0),
-//                             child: Column(
-//                               crossAxisAlignment: CrossAxisAlignment.start,
-//                               children: [
-//                                 Text(
-//                                   position,
-//                                   style: const TextStyle(
-//                                     fontWeight: FontWeight.bold,
-//                                   ),
-//                                 ),
-//                                 Wrap(
-//                                   spacing: 8,
-//                                   children: court[position]!
-//                                       .keys
-//                                       .map<Widget>((timeSlot) {
-//                                     bool isAvailable;
-//                                     if (court[position]![timeSlot] is String) {
-//                                       isAvailable = true;
-//                                     } else {
-//                                       isAvailable = false;
-//                                     }
-//                                     return ElevatedButton(
-//                                       style: ButtonStyle(
-//                                         backgroundColor: isAvailable
-//                                             ? const WidgetStatePropertyAll(
-//                                                 Colors.red)
-//                                             : const WidgetStatePropertyAll(
-//                                                 Colors.green),
-//                                       ),
-//                                       onPressed: !isAvailable
-//                                           ? () => showBookingDialog(
-//                                               courtName, position, timeSlot)
-//                                           : null,
-//                                       child: Text(
-//                                         "$timeSlot",
-//                                         style: const TextStyle(
-//                                           color: Colors.white,
-//                                         ),
-//                                       ),
-//                                     );
-//                                   }).toList(),
-//                                 ),
-//                               ],
-//                             ),
-//                           );
-//                         }).toList(),
-//                       )
-//                     ],
-//                   ),
-//                 );
-//               },
-//             ),
-//     );
-//   }
-// }
-
 class HomeScreenn extends StatelessWidget {
   const HomeScreenn({super.key});
 
@@ -231,9 +23,9 @@ class HomeScreenn extends StatelessWidget {
                 child: const Text("Cancel"),
               ),
               TextButton(
-                onPressed: () {
-                  bookingProvider.bookSlot(courtName, position, timeSlot);
-                  Navigator.pop(context);
+                onPressed: () async {
+                  await bookingProvider.bookSlot(courtName, position, timeSlot);
+                  if (context.mounted) Navigator.of(context).pop();
                 },
                 child: const Text("Confirm"),
               ),
@@ -325,6 +117,155 @@ class HomeScreenn extends StatelessWidget {
                 );
               },
             ),
+    );
+  }
+}
+
+
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final bookingProvider = Provider.of<BookingProvider>(context);
+
+    void showBookingDialog(String courtName, String position, String timeSlot) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            title: const Text("Confirm Booking"),
+            content: const Text("Do you want to book this slot?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Cancel"),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: () {
+                  bookingProvider.bookSlot(courtName, position, timeSlot);
+                  Navigator.pop(context);
+                },
+                child: const Text("Confirm"),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.grey[100], // Light background
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text("🏸 Badminton Court Booking"),
+        backgroundColor: Colors.green[700],
+        leading: IconButton(
+          icon: const Icon(Icons.person, color: Colors.white),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const UserBookingsScreen()),
+          ),
+        ),
+      ),
+      body: bookingProvider.isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          : ListView.builder(
+        padding: const EdgeInsets.all(10),
+        itemCount: bookingProvider.slotsAvailability.length,
+        itemBuilder: (context, courtIndex) {
+          var court = bookingProvider.slotsAvailability[courtIndex];
+          String courtName = "Court ${courtIndex + 1}";
+
+          return Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    tileColor: Colors.green[500],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    title: Text(
+                      courtName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    leading: const Icon(Icons.sports_tennis, color: Colors.white),
+                  ),
+                  const SizedBox(height: 8),
+                  Column(
+                    children: court.keys.map<Widget>((position) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              position,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: court[position]!.keys.map<Widget>((timeSlot) {
+                                bool isAvailable =
+                                court[position]![timeSlot] is! String;
+
+                                return GestureDetector(
+                                  onTap: isAvailable
+                                      ? () => showBookingDialog(
+                                      courtName, position, timeSlot)
+                                      : null,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isAvailable
+                                          ? Colors.green
+                                          : Colors.red,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      timeSlot,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

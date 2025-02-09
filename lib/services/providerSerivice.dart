@@ -1,3 +1,4 @@
+import 'package:badminton/services/emailService.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -97,7 +98,12 @@ class BookingProvider extends ChangeNotifier {
           'time': time[time.length - 1],
         }
       },
-    }, SetOptions(merge: true));
+    }, SetOptions(merge: true)).whenComplete(
+      () {
+        print('sending email');
+        sendEmail(userEmail, 'Booking Confirmation', 'Slot booked');
+      },
+    );
 
     // Refresh slots after booking
     fetchSlots();
@@ -183,3 +189,4 @@ class AuthProviderr with ChangeNotifier {
     await _auth.signOut();
   }
 }
+
