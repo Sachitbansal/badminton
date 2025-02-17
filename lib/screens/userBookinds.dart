@@ -18,44 +18,82 @@ class UserBookingsScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back),
           ),
         ),
-        body: Consumer<BookingProvider>(
-          builder: (context, provider, child) {
-            if (provider.bookings.isEmpty) {
-              return const Center(child: Text("No bookings found"));
-            }
-            return ListView(
-              children: provider.bookings.entries.map((entry) {
-                String date = entry.key;
-                Map<String, dynamic> bookingsForDate = entry.value;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text("Date: $date",
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18)),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            bool isDesktop = constraints.maxWidth > 900;
+            bool isTablet =
+                constraints.maxWidth > 600 && constraints.maxWidth <= 900;
+            double titleFontSize = isDesktop ? 22 : (isTablet ? 20 : 18);
+            double contentFontSize = isDesktop ? 18 : (isTablet ? 16 : 14);
+            double paddingSize = isDesktop ? 30 : (isTablet ? 20 : 10);
+
+            return Consumer<BookingProvider>(
+              builder: (context, provider, child) {
+                if (provider.bookings.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      "No bookings found",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
-                    ...bookingsForDate.entries.map((booking) {
-                      String bookingId = booking.key;
-                      Map<String, dynamic> details = booking.value;
-                      return Card(
-                        margin: const EdgeInsets.all(8),
-                        child: ListTile(
-                          title: Text(
-                              "Court: ${details['court']}, Position: ${details['position']}"),
-                          subtitle: Text("Time: ${details['time']}"),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.cancel, color: Colors.red),
-                            onPressed: () =>
-                                provider.cancelBooking(date, bookingId),
+                  );
+                }
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(paddingSize),
+                    child: ListView.builder(
+                      shrinkWrap: true, // Ensures it doesn’t expand infinitely
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Prevents nested scrolling issues
+                      itemCount: provider.bookings.length,
+                      itemBuilder: (context, index) {
+                        String date = provider.bookings.keys.elementAt(index);
+                        Map<String, dynamic> bookingsForDate =
+                            provider.bookings[date];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                        ),
-                      );
-                    }),
-                  ],
+                          child: ExpansionTile(
+                            title: Text(
+                              "Date: $date",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: titleFontSize,
+                              ),
+                            ),
+                            children: bookingsForDate.entries.map((booking) {
+                              String bookingId = booking.key;
+                              Map<String, dynamic> details = booking.value;
+                              return ListTile(
+                                title: Text(
+                                  "Court: ${details['court']}, Position: ${details['position']}",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: contentFontSize),
+                                ),
+                                subtitle: Text(
+                                  "Time: ${details['time']}",
+                                  style:
+                                      TextStyle(fontSize: contentFontSize - 2),
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.cancel,
+                                      color: Colors.red),
+                                  onPressed: () =>
+                                      provider.cancelBooking(date, bookingId),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 );
-              }).toList(),
+              },
             );
           },
         ),
