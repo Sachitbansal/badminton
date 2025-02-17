@@ -10,24 +10,20 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bookingProvider = Provider.of<BookingProvider>(context);
-    // Get screen size for responsive design
     final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 360;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E21),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: size.height * 0.25, // Responsive height
-            floating: true,
+            expandedHeight: 120,
+            floating: false,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
+              title: const Text(
                 "BADMINTON COURTS",
-                style: TextStyle(
-                    fontSize: isSmallScreen ? 16 : 30,
-                    fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               background: Container(
                 decoration: BoxDecoration(
@@ -44,11 +40,7 @@ class HomeScreen extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                icon: Icon(
-                  Icons.book,
-                  size: isSmallScreen ? 20 : 50,
-                  color: Colors.black,
-                ),
+                icon: const Icon(Icons.book, size: 24, color: Colors.white),
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -62,8 +54,8 @@ class HomeScreen extends StatelessWidget {
                   child: Center(
                     child: Lottie.network(
                       'https://assets10.lottiefiles.com/packages/lf20_x62chJ.json',
-                      width: size.width * 0.3,
-                      height: size.width * 0.3,
+                      width: 100,
+                      height: 100,
                     ),
                   ),
                 )
@@ -74,88 +66,52 @@ class HomeScreen extends StatelessWidget {
                       String courtName = "Court ${courtIndex + 1}";
 
                       return Padding(
-                        padding: EdgeInsets.all(size.width * 0.03),
-                        child: PhysicalModel(
-                          color: Colors.transparent,
-                          elevation: 15,
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.blueGrey.shade900,
-                                  Colors.blueGrey.shade800,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          color: Colors.blueGrey.shade900,
+                          child: Column(
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.sports_tennis,
+                                    color: Colors.white70),
+                                title: Text(
+                                  courtName,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.info_outline,
+                                      color: Colors.white70),
+                                  onPressed: () => _showCourtInfo(context),
+                                ),
                               ),
-                            ),
-                            child: Column(
-                              children: [
-                                // Court Header with responsive padding and text
-                                Container(
-                                  padding: EdgeInsets.all(size.width * 0.04),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.3),
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(20),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.sports_tennis,
-                                          color: Colors.white70),
-                                      SizedBox(width: size.width * 0.02),
-                                      Text(
-                                        courtName,
-                                        style: TextStyle(
-                                            fontSize: isSmallScreen ? 18 : 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white),
-                                      ),
-                                      const Spacer(),
-                                      IconButton(
-                                        icon: const Icon(Icons.info_outline),
-                                        color: Colors.white70,
-                                        onPressed: () =>
-                                            _showCourtInfo(context),
-                                      ),
-                                    ],
-                                  ),
+                              Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: court.keys.length,
+                                  itemBuilder: (context, positionIndex) {
+                                    String position =
+                                        court.keys.elementAt(positionIndex);
+                                    return _buildTimeSlotCard(
+                                      context,
+                                      position: position,
+                                      slots: court[position]!,
+                                      courtName: courtName,
+                                    );
+                                  },
                                 ),
-
-                                // Time Slots Grid with responsive sizing
-                                Padding(
-                                  padding: EdgeInsets.all(size.width * 0.04),
-                                  child: GridView.builder(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      childAspectRatio:
-                                          isSmallScreen ? 1.8 : 2.2,
-                                      mainAxisSpacing: size.width * 0.02,
-                                      crossAxisSpacing: size.width * 0.02,
-                                    ),
-                                    itemCount: court.keys.length,
-                                    itemBuilder: (context, positionIndex) {
-                                      String position =
-                                          court.keys.elementAt(positionIndex);
-                                      return _buildTimeSlotCard(
-                                        context,
-                                        position: position,
-                                        slots: court[position]!,
-                                        courtName: courtName,
-                                        isSmallScreen: isSmallScreen,
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -178,111 +134,96 @@ class HomeScreen extends StatelessWidget {
     required String position,
     required Map<String, dynamic> slots,
     required String courtName,
-    required bool isSmallScreen,
   }) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
+    return Card(
+      color: Colors.black.withOpacity(0.2),
+      margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
         onTap: () => _handleSlotTap(context, courtName, position, slots),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-            ),
-          ),
-          padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  position,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontWeight: FontWeight.bold,
-                    fontSize: isSmallScreen ? 14 : 30,
-                  ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                position,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
-                SizedBox(height: isSmallScreen ? 3 : 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 5,
-                  children: slots.entries.map((entry) {
-                    bool isAvailable = entry.value is! String;
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isSmallScreen ? 4 : 6,
-                          vertical: isSmallScreen ? 1 : 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isAvailable
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.red.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          entry.key.replaceAll("Time", ""),
-                          style: TextStyle(
-                            color: isAvailable
-                                ? Colors.lightGreen
-                                : Colors.redAccent,
-                            fontSize: isSmallScreen ? 10 : 25,
-                          ),
-                        ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: slots.entries.map((entry) {
+                  bool isAvailable = entry.value is! String;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isAvailable
+                          ? Colors.green.withOpacity(0.2)
+                          : Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      entry.key.replaceAll("Time", ""),
+                      style: TextStyle(
+                        color:
+                            isAvailable ? Colors.lightGreen : Colors.redAccent,
+                        fontSize: 14,
                       ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  void _handleSlotTap(BuildContext context, String courtName, String position,
-      Map<String, dynamic> slots) {
-    final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 360;
-
+  void _handleSlotTap(
+    BuildContext context,
+    String courtName,
+    String position,
+    Map<String, dynamic> slots,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: EdgeInsets.all(size.width * 0.05),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.blueGrey.shade900,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               "Available Slots for $position",
-              style: TextStyle(
-                fontSize: isSmallScreen ? 16 : 18,
+              style: const TextStyle(
+                fontSize: 16,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: size.height * 0.02),
+            const SizedBox(height: 16),
             Wrap(
-              spacing: size.width * 0.02,
-              runSpacing: size.width * 0.02,
-              direction: Axis.horizontal,
+              spacing: 8,
+              runSpacing: 8,
               children: slots.entries.map((entry) {
                 bool isAvailable = entry.value is! String;
                 return ChoiceChip(
                   label: Text(
                     entry.key.replaceAll("time", ""),
-                    style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+                    style: const TextStyle(fontSize: 14),
                   ),
                   selected: false,
                   onSelected: isAvailable
@@ -297,7 +238,7 @@ class HomeScreen extends StatelessWidget {
                 );
               }).toList(),
             ),
-            SizedBox(height: size.height * 0.02),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -305,30 +246,26 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _confirmBooking(
-      BuildContext context, String court, String position, String time) {
-    final size = MediaQuery.of(context).size;
+    BuildContext context,
+    String court,
+    String position,
+    String time,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.blueGrey.shade900,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Confirm Booking",
-            style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(height: size.height * 0.01),
-            Text(
-              "$court • $position • $time",
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "Confirm Booking",
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          "$court • $position • $time",
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
-            style: ButtonStyle(
-                shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4)))),
             onPressed: () => Navigator.pop(context),
             child: const Text("Cancel"),
           ),
@@ -336,7 +273,8 @@ class HomeScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4)),
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
             onPressed: () {
               Provider.of<BookingProvider>(context, listen: false)
@@ -355,26 +293,29 @@ class HomeScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: Colors.green,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(8),
         content: const Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white),
-            SizedBox(width: 10),
+            Icon(Icons.check_circle, color: Colors.white, size: 20),
+            SizedBox(width: 8),
             Text("Booking Successful!"),
           ],
         ),
       ),
     );
   }
-  // Add these missing methods inside the HomeScreen class
 
   void _showCourtInfo(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.blueGrey.shade900,
-        title: const Text('Court Information',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Court Information',
+          style: TextStyle(color: Colors.white),
+        ),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,9 +332,6 @@ class HomeScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            style: ButtonStyle(
-                shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4)))),
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
@@ -409,26 +347,31 @@ class HomeScreen extends StatelessWidget {
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: Colors.blueGrey.shade900,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Filter Courts',
-                style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
+            const Text(
+              'Filter Courts',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
             _buildFilterOption('Available Only', Icons.event_available),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
+                minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: const Text('Apply Filters'),
             ),
@@ -440,8 +383,11 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildFilterOption(String title, IconData icon) {
     return ListTile(
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
+      leading: Icon(icon, color: Colors.white70, size: 24),
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white, fontSize: 16),
+      ),
       trailing: Switch(
         value: false,
         onChanged: (value) {},
